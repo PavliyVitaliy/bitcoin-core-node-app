@@ -1,0 +1,53 @@
+version: "3"
+services:
+  bitcoin-regtest:
+    image: ruimarinho/bitcoin-core:latest
+    container_name: bitcoin-regtest
+    command:
+      -printtoconsole
+      -regtest=1
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0
+      -rpcuser=user
+      -rpcpassword=password
+    ports:
+      - "18443:18443"       # RPC port
+      - "18444:18444"       # P2P port
+    restart: always
+    networks:
+      - bitcoin.network
+    volumes:
+      - ./bitcoin_data:/home/bitcoin/.bitcoin
+  bitcoin-info-postgres-db:
+    image: postgres:14
+    container_name: bitcoin-info-postgres-db
+    ports:
+      - 5432:5432
+    restart: always
+    env_file:
+      - backend/app/.env
+    networks:
+      - bitcoin.network
+    volumes:
+      - ./var/postgres/data:/var/lib/postgresql/data
+
+  bitcoin-info-backend:
+    container_name: bitcoin-info-backend
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    env_file:
+      - backend/app/.env
+    volumes:
+      - ./backend:/code/backend
+    depends_on:
+      - bitcoin-info-postgres-db
+    restart: always
+    networks:
+      - bitcoin.network
+    ports:
+      - 8000:8000
+
+networks:
+  bitcoin.network:
+    driver: bridge

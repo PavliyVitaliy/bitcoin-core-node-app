@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# DB and env variables
+.env
+.venv
+env/
+var/
+data/
+bitcoin_data/
+
+# IDE
+.vscode
+.idea
