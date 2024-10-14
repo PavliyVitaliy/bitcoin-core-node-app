@@ -122,13 +122,17 @@ class TransactionService:
         Submits a raw transaction
     """
     async def send_raw_transaction(self, hex_str: str) -> str:
-        tx_id = await BitcoinTransaction(self.__client).send_raw_transaction(hex_str)
-        if not tx_id:
-            msg = f"Transaction sending failed for hex '{hex_str}'."
-            logging.error(msg)
-            raise HTTPException(422, msg)
-        logging.info(f"Transaction successfully broadcast. Transaction ID: {tx_id}")
-        return tx_id
+        try:
+            tx_id = await BitcoinTransaction(self.__client).send_raw_transaction(hex_str)
+            if not tx_id:
+                msg = f"Transaction sending failed for hex '{hex_str}'."
+                logging.error(msg)
+                raise HTTPException(422, msg)
+            logging.info(f"Transaction successfully broadcast. Transaction ID: {tx_id}")
+            return tx_id
+        except RPCError as e:
+            self._is_fee_not_enough_error(e)
+            raise
 
     """
         Get detailed information about an in-wallet transaction.
@@ -166,3 +170,9 @@ class TransactionService:
             return selected_unspents
         else:
             return []  # No possible combination found
+
+    @staticmethod
+    def _is_fee_not_enough_error(rpc_error: RPCError) -> None:
+        if str(rpc_error.error).find("min relay fee not met") != -1:
+            exp_msg = f"Fee is not enough. Try changing the amount for the transaction"
+            raise HTTPException(404, exp_msg)
