@@ -17,6 +17,8 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     bitcoin_info: str = "/info"
     bitcoin_wallet: str = "/wallet"
+    bitcoin_transaction: str = "/transaction"
+    bitcoin_block: str = "/block"
 
 
 class ApiPrefix(BaseModel):

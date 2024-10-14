@@ -27,7 +27,6 @@ RUN pip install "poetry==$POETRY_VERSION"
 WORKDIR /code/backend/app
 COPY backend/poetry.lock backend/pyproject.toml ./
 RUN poetry install --without dev,test --no-interaction --no-ansi
-CMD ["/app", "alembic upgrade head"]
 
 COPY ./ /code/backend
 
