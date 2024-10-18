@@ -4,7 +4,6 @@ from sqlalchemy.engine import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from bitcoin_adapter.rpc_helper import get_bitcoin_rpc_client
 from core.config import settings
-
 from core.models import db_helper, Transaction
 from core.schemas.transaction import TransactionSchema
 from core.services.transaction_service import TransactionService
