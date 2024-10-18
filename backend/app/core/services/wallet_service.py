@@ -2,7 +2,6 @@ from decimal import Decimal
 from typing import List
 from fastapi import HTTPException
 from bitcoinrpc import BitcoinRPC, RPCError
-
 from bitcoin_adapter.wallet import BitcoinWallet
 
 import logging
@@ -10,20 +9,21 @@ import logging
 logging.basicConfig()
 logging.getLogger("BitcoinRPC").setLevel(logging.DEBUG)
 
-"""
-CRUD of bitcoin wallet
-"""
-
 
 class WalletService:
+    """
+    Class representing a Wallet Service for CRUD of bitcoin wallet
+    :param rpc_client: rpc client of the Bitcoin node.
+    """
+
     def __init__(self, rpc_client: BitcoinRPC):
         self.__client: BitcoinRPC = rpc_client
 
-    """
-    Get wallet info:
-      - Addresses with data(amount, confirmations, etc)
-    """
     async def get_wallet_info(self) -> List[dict] | None:
+        """
+        Get wallet info:
+            - Addresses with data(amount, confirmations, etc.)
+        """
         try:
             return await BitcoinWallet(self.__client).list_received_by_address()
         except RPCError as e:
@@ -32,10 +32,11 @@ class WalletService:
             self._is_wallet_not_exist_error(e)
             raise
 
-    """
-        Get wallet balance:
-    """
     async def get_wallet_balance(self) -> Decimal:
+        """
+        Get wallet balance
+        """
+
         try:
             return await BitcoinWallet(self.__client).get_wallet_balance()
         except RPCError as e:
@@ -44,10 +45,11 @@ class WalletService:
             self._is_wallet_not_exist_error(e)
             raise
 
-    """
-       Create wallet
-    """
     async def create_wallet(self, wallet_name: str) -> str:
+        """
+        Create and load a new wallet
+        """
+
         try:
             wallet = await BitcoinWallet(self.__client).create_wallet(wallet_name)
             return wallet["name"]
@@ -59,10 +61,11 @@ class WalletService:
                 raise HTTPException(409, exp_msg)
             raise
 
-    """
-        Load wallet
-    """
     async def load_wallet(self, wallet_name: str) -> str:
+        """
+        Load a wallet from a wallet file or directory
+        """
+
         try:
             wallet = await BitcoinWallet(self.__client).load_wallet(wallet_name)
             return wallet["name"]
@@ -74,10 +77,11 @@ class WalletService:
                 raise HTTPException(409, exp_msg)
             raise
 
-    """
-        Create new address for wallet
-    """
     async def create_new_address(self) -> str:
+        """
+        Create new Bitcoin address for receiving payments
+        """
+
         try:
             return await BitcoinWallet(self.__client).create_new_address()
         except RPCError as e:

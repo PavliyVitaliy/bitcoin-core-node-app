@@ -12,18 +12,16 @@ import logging
 logging.basicConfig()
 logging.getLogger("BitcoinRPC").setLevel(logging.DEBUG)
 
-"""
-CRUD of bitcoin transactions
-"""
-
 
 class TransactionService:
+    """
+    Class representing a Transaction Service for CRUD of bitcoin transactions
+    :param rpc_client: rpc client of the Bitcoin node.
+    """
+
     def __init__(self, rpc_client: BitcoinRPC):
         self.__client: BitcoinRPC = rpc_client
 
-    """
-        Create and broadcast transaction for test transaction using regtest only
-    """
     async def create_and_broadcast_regtest_transaction(
             self,
             session: AsyncSession,
@@ -31,6 +29,10 @@ class TransactionService:
             to_address: str,
             amount: Decimal
     ) -> dict:
+        """
+        Create and broadcast transaction for test transaction using regtest only
+        """
+
         try:
             # Step 1: You should already have enough funds to transfer between addresses.
             # For the first generation of funds in the regtest node, you can use API for generation(101 blocks).
@@ -75,10 +77,11 @@ class TransactionService:
             logging.error(msg)
             raise
 
-    """
-        Get list of unspent transaction outputs
-    """
     async def get_unspent_transactions_outputs(self, from_address: str) -> List[dict]:
+        """
+        Get list of unspent transaction outputs
+        """
+
         unspent_txs = await BitcoinTransaction(self.__client).list_unspent(from_address)
         if not unspent_txs:
             msg = f"No funds available in the '{from_address}' address."
@@ -86,15 +89,16 @@ class TransactionService:
             raise HTTPException(422, msg)
         return unspent_txs
 
-    """
-        Create a transaction spending the given inputs and creating new outputs.
-    """
     async def create_raw_transaction(
             self,
             unspent_txs: List[dict],
             to_address: str,
             amount: float,
     ) -> str:
+        """
+        Create a raw transaction spending the given inputs and creating new outputs.
+        """
+
         inputs = [{"txid": unspent['txid'], "vout": unspent['vout']} for unspent in unspent_txs]
         outputs = {to_address: amount}
         hex_raw_tx = await BitcoinTransaction(self.__client).create_raw_transaction(inputs, outputs)
@@ -106,10 +110,11 @@ class TransactionService:
         logging.info(f"Transaction successfully created. Transaction: {hex_raw_tx}")
         return hex_raw_tx
 
-    """
-       Sign inputs for raw transaction
-    """
     async def sign_raw_transaction(self, hex_raw_tx: str) -> dict:
+        """
+        Sign inputs for raw transaction
+        """
+
         signed_tx = await BitcoinTransaction(self.__client).sign_raw_transaction(hex_raw_tx)
         if not signed_tx.get("complete"):
             msg = "Transaction signing failed."
@@ -118,10 +123,11 @@ class TransactionService:
         logging.info(f"Transaction successfully sign. Transaction hex: {signed_tx.get("hex")}")
         return signed_tx
 
-    """
-        Submits a raw transaction
-    """
     async def send_raw_transaction(self, hex_str: str) -> str:
+        """
+        Submits a raw transaction to local node and network
+        """
+
         try:
             tx_id = await BitcoinTransaction(self.__client).send_raw_transaction(hex_str)
             if not tx_id:
@@ -134,10 +140,11 @@ class TransactionService:
             self._is_fee_not_enough_error(e)
             raise
 
-    """
-        Get detailed information about an in-wallet transaction.
-    """
     async def get_transaction(self, tx_id: str) -> dict:
+        """
+        Get detailed information about an in-wallet transaction.
+        """
+
         info = await BitcoinTransaction(self.__client).get_transaction(tx_id)
         if not info:
             msg = f"Can not find transaction for tx_id '{tx_id}'."

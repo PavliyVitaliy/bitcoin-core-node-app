@@ -7,21 +7,22 @@ import logging
 logging.basicConfig()
 logging.getLogger("BitcoinRPC").setLevel(logging.DEBUG)
 
-"""
-Helper Service
-"""
-
 
 class HelperService:
+    """
+    Class representing a Helper Service
+    :param rpc_client: rpc client of the Bitcoin node.
+    """
+
     def __init__(self, rpc_client: BitcoinRPC):
         self.__client: BitcoinRPC = rpc_client
 
-    """
+    async def generate_blocks(self, address: str, blocks: int = 1) -> List[str]:
+        """
         Mines to a specified address and returns the block hashes.
         Uses for regtest node
-    """
+        """
 
-    async def generate_blocks(self, address: str, blocks: int = 1) -> List[str]:
         mined_blocks = await BitcoinHelper(self.__client).generate_to_address(address, blocks)
         if not mined_blocks:
             msg = f"Blocks generation failed for address: {address}"

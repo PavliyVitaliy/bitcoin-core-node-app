@@ -7,23 +7,25 @@ import logging
 logging.basicConfig()
 logging.getLogger("BitcoinRPC").setLevel(logging.DEBUG)
 
-"""
-Retrieve bitcoin blockchain information
-"""
-
 
 class InfoService:
+    """
+    Class representing an Info Service for retrieve bitcoin blockchain information
+    :param rpc_client: rpc client of the Bitcoin node.
+    """
+
     def __init__(self, rpc_client: BitcoinRPC):
         self.__client: BitcoinRPC = rpc_client
 
-    """
-        Get info for current block height:
-          - Current block height
-          - Hash of the latest block
-          - Number of transactions in the latest block
-          - Total amount of Bitcoin currently in circulation
-    """
     async def get_current_block_info(self) -> BlockchainInfoSchema:
+        """
+        Get info for current block height:
+            - Current block height
+            - Hash of the latest block
+            - Number of transactions in the latest block
+            - Total amount of Bitcoin currently in circulation
+        """
+
         try:
             block_height = await self.__client.getblockcount()
             latest_block_hash = await self.__client.getblockhash(block_height)
